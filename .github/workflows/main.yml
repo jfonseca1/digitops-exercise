@@ -35,7 +35,7 @@ jobs:
 
     - name: Deploy to Kubernetes
       run: |
-        helm upgrade --install digitops-service ./helm \
+        helm upgrade --install digitops-service ./digitops-app \
           --namespace digitops \
           --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
-          --set image.tag=latest
+          --set image.tag=latest --create-namespace
