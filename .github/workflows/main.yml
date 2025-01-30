@@ -1,4 +1,3 @@
-# .github/workflows/deploy.yml
 name: Deploy to Kubernetes
 
 on:
@@ -11,7 +10,7 @@ env:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted  # Changed to use self-hosted runner
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
@@ -31,11 +30,25 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
     - name: Deploy to Kubernetes
       run: |
+        # Delete existing pods to force update
+        kubectl delete pods -l app=digitops-service -n digitops --ignore-not-found
+        
+        # Update the deployment with new image
         helm upgrade --install digitops-service ./digitops-app \
           --namespace digitops \
           --set image.repository=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} \
-          --set image.tag=latest --create-namespace
+          --set image.tag=${{ github.sha }} \
+          --set image.pullPolicy=Always \
+          --create-namespace
+
+    - name: Verify deployment
+      run: |
+        kubectl rollout status deployment/digitops-service-deployment -n digitops --timeout=180s
+        echo "Current pods:"
+        kubectl get pods -n digitops
