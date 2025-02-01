@@ -18,4 +18,4 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8000
-        command: ["/bin/sh", "-c", "apt-get update && apt-get install -y netcat && while true; do echo -e 'HTTP/1.1 500 Internal Server Error\\n\\n' | nc -l -p 80; done"]   
+        command: ["/bin/sh", "-c", "apk add --no-cache socat && while true; do echo 'HTTP/1.1 500 Internal Server Error\\n\\n' | socat TCP-LISTEN:80,reuseaddr,fork STDOUT; done"]  
