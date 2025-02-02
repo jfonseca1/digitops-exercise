@@ -24,6 +24,7 @@ jobs:
         fi
         
         # Start minikube with none driver (runs directly on host)
+        sudo apt install conntrack
         sudo -E minikube start --driver=none \
           --kubernetes-version=v1.31.4 \
           --extra-config=apiserver.service-node-port-range=80-32767 \
