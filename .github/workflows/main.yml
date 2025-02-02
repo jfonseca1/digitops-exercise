@@ -25,9 +25,22 @@ jobs:
         curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
         chmod +x kubectl
         sudo mv kubectl /usr/local/bin/
-    - name: start minikube
-      id: minikube
-      uses: medyagh/setup-minikube@latest
+    - name: Start Docker Service
+      run: |
+        sudo systemctl start docker
+
+    - name: Manually Pull kicbase Image
+      run: |
+        docker pull gcr.io/k8s-minikube/kicbase:v0.0.46 || true
+
+    - name: Start Minikube
+      run: |
+        minikube start --driver=docker --force
+
+    - name: Verify Minikube Status
+      run: |
+        minikube status
+        kubectl get nodes
 
   build-and-deploy:
     needs: minikube
