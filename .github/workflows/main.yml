@@ -21,10 +21,11 @@ jobs:
         if ! command -v minikube &> /dev/null; then
           curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
+          sudo apt-get install -y conntrack
         fi
         
         # Start minikube with none driver (runs directly on host)
-        sudo apt install conntrack
+        
         sudo -E minikube start --driver=none \
           --kubernetes-version=v1.31.4 \
           --extra-config=apiserver.service-node-port-range=80-32767 \
