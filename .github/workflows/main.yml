@@ -53,6 +53,7 @@ jobs:
         kubectl get pods -A
     
   build-and-deploy:
+    needs: minikube
     runs-on: self-hosted
     permissions:
       contents: read
