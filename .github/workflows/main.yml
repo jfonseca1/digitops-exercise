@@ -25,7 +25,7 @@ jobs:
         
         # Start minikube with none driver (runs directly on host)
         sudo -E minikube start --driver=none \
-          --kubernetes-version=v1.28.0 \
+          --kubernetes-version=v1.31.4 \
           --extra-config=apiserver.service-node-port-range=80-32767 \
           --extra-config=kubelet.cgroup-driver=systemd
         
