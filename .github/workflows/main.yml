@@ -9,6 +9,47 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  minikube:
+    runs-on: self-hosted
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Minikube
+      id: minikube
+      shell: bash
+      run: |
+        # Download latest minikube if not present
+        if ! command -v minikube &> /dev/null; then
+          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        fi
+        
+        # Start minikube with none driver (runs directly on host)
+        sudo -E minikube start --driver=none \
+          --kubernetes-version=v1.28.0 \
+          --extra-config=apiserver.service-node-port-range=80-32767 \
+          --extra-config=kubelet.cgroup-driver=systemd
+        
+        # Fix permissions
+        sudo chown -R $USER:$USER /tmp/minikube
+        sudo chown -R $USER:$USER ~/.kube
+        sudo chown -R $USER:$USER ~/.minikube
+        
+        # Enable ingress addon (optional)
+        minikube addons enable ingress
+        
+        # Wait for node to be ready
+        JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}' 
+        until kubectl get nodes -o jsonpath="$JSONPATH" | grep "Ready=True"; do
+          sleep 1
+        done
+
+    - name: Verify installation
+      run: |
+        minikube status
+        kubectl get nodes
+        kubectl cluster-info
+        kubectl get pods -A
+    
   build-and-deploy:
     runs-on: self-hosted
     permissions:
