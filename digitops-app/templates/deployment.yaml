@@ -18,4 +18,29 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         ports:
         - containerPort: 8000
-        command: ["/bin/sh", "-c", "apk add --no-cache socat && while true; do echo 'HTTP/1.1 500 Internal Server Error\\n\\n' | socat TCP-LISTEN:80,reuseaddr,fork STDOUT; done"]  
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          failureThreshold: 3
+        env:
+        - name: FORCE_ERROR_RATE
+          value: "0.1"  # 10% of requests will return errors
+        - name: ERROR_CODE
+          value: "503"  # Service Unavailable
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
